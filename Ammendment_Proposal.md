@@ -1,4 +1,6 @@
+Project description
 
+A USB that boots your writing brain. Obsidian is the kernel. Alice is the local LLM that lives on the stick with its weights. The UI is a parody “Hollywood hacker” skin that looks ridiculous on purpose, then the LLM critiques your notes, tags them, and argues back. Everything runs offline. The artifact is portable, reproducible, and giftable.
 
 **Easter eggs (v0.1)**
 
