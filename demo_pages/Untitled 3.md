@@ -1,4 +1,5 @@
-# System Log: Project Wonderland
+# Fun snippets of hallucinogenic LLM in wonderland
+
 
 This is the central processing log for the `Wonderland-Kernel`. Normal text is rendered in `IBM Plex Mono` for maximum clarity and a retro feel. This system bridges the logical and the nonsensical. Here are some important links: [[Mad Hatter's Tea Party Schedule]], an external link to the [official documentation](https://obsidian.md), and a link to a file that doesn't exist yet, [[The Jabberwocky Protocol]].
 
@@ -77,6 +78,6 @@ function whoAreYou(entity) {
     console.log(">> Who... are... YOU?");
     return null;
   }
-  
+
   return `Entity ${identity.name} at ${MEMORY_ADDRESS} is ${MADNESS_LEVEL}% mad.`;
 }

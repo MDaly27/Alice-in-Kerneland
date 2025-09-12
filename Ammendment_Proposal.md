@@ -2,7 +2,7 @@ Project description
 
 A USB that boots your writing brain. Obsidian is the kernel. Alice is the local LLM that lives on the stick with its weights. The UI is a parody “Hollywood hacker” skin that looks ridiculous on purpose, then the LLM critiques your notes, tags them, and argues back. Everything runs offline. The artifact is portable, reproducible, and giftable.
 
-**Easter eggs (v0.1)**
+**Easter eggs ideas (v0.1)**
 
 - `Hollywood Mode`: command palette entry triggers a 2‑second ACCESS GRANTED animation, then normal.
 - `panic`: flips to a calm monochrome theme.
@@ -10,17 +10,17 @@ A USB that boots your writing brain. Obsidian is the kernel. Alice is the local 
 - `alice_whisper`: adds a tiny watermark “Alice was the model all along” in the status bar.
 - `sudo_please`: 'sudo rm -rf /* is a choice on the list somehwere.
 - All interactions with the ai model are gonna be alice like references. why? for fun
-    
+
 - Hidden note puzzle: three notes whose first letters spell “LLM”. Opening all three unlocks an extra command in the plugin.
 
 ---
 
-## Task tracker 
+## Task tracker
 
 ### Core
 -  USB layout finalized and scripted for Linux/macOS/Windows.
 -  Demo vault seeded with easter eggs and README.
-    
+
 
 ### Models and runtime (Matt)
 
@@ -29,7 +29,7 @@ A USB that boots your writing brain. Obsidian is the kernel. Alice is the local 
 -  Cross‑OS start/stop scripts + health check.
 -  Smoke tests offline on 3 OS.
 -  Explore `llama.cpp` path (perf and footprint), produce comparison notes.
-    
+
 
 ### Obsidian plugin (Mark)
 
@@ -39,16 +39,16 @@ A USB that boots your writing brain. Obsidian is the kernel. Alice is the local 
 -  `Tag Note` command: YAML front‑matter tags + rationale.
 -  RAG v0: chunk → embed → JSONL index → top‑k retrieve.
 -  Add easter‑egg commands (`hollywood_mode`, `panic`, `bench_me`, `kernel_map`, `sudo_please`).
-    
+
 
 ### Theme / Skin (Mark)
 
--  “h4cker” theme v0.1 (dark, neon, mono).    
+-  “h4cker” theme v0.1 (dark, neon, mono).
 -  Status bar styling for model/ctx/TPS.
-    
+
 
 ### QA
 
--  Cold start to first token < 60 s.    
+-  Cold start to first token < 60 s.
 -  Model swap without restart.
 -  Tagging writes valid YAML.

@@ -1,1 +1,0 @@
-the white knight is talking backwards 
