@@ -1,0 +1,303 @@
+/*
+Alice in Kerneland — HackTerm v2.0
+"Compilers compile. Tea is hot. kill -9 the procrastination."
+"Mad Hatter was root. Queen of Hearts ran `kill -9`."
+"Cheshire cat cached you before you existed."
+
+Design goals:
+- True terminal vibe: mono UI, neon accent, scanlines, cursor line.
+- Obsidian-native vars bridged. Accent driven by HSL knobs.
+- Tasteful jokes. No vibe-coding. Flips off flicker for reduced motion.
+*/
+
+/* ---------- knobs ---------- */
+:root{
+  /* Accent hooks. Obsidian themes sometimes expose --accent-h/s/l. We fall back if not. */
+  --aik-h: var(--accent-h, 135);
+  --aik-s: var(--accent-s, 95%);
+  --aik-l: var(--accent-l, 50%);
+
+  --aik-accent: hsl(var(--aik-h), var(--aik-s), var(--aik-l));
+  --aik-accent-weak: hsl(var(--aik-h), calc(var(--aik-s) - 20%), calc(var(--aik-l) - 12%));
+  --aik-accent-strong: hsl(var(--aik-h), var(--aik-s), calc(var(--aik-l) + 10%));
+
+  /* Palette: phosphor terminal with green bias */
+  --aik-bg0: #050a08;
+  --aik-bg1: #08110d;
+  --aik-bg2: #0d1713;
+  --aik-fg:  #d6ffe9;
+  --aik-fg-dim: #9bc9b2;
+
+  --aik-border: #083f2a;
+  --aik-border-strong: #0b6a41;
+  --aik-danger: #ff3355;
+  --aik-warn:   #ffb000;
+
+  --aik-radius: 10px;
+  --code-size: 0.95rem;
+  --file-line-width: 860px;
+
+  /* CRT sauce. Set to 0 to disable all retro effects. Honored by reduced-motion below. */
+  --crt: 1;
+  --scanline-opacity: .06;
+  --flicker-opacity: .015;
+}
+
+/* ---------- bridge to Obsidian vars ---------- */
+body, .theme-dark{
+  --background-primary: var(--aik-bg0);
+  --background-secondary: var(--aik-bg1);
+  --background-primary-alt: var(--aik-bg1);
+  --background-secondary-alt: var(--aik-bg2);
+
+  --text-normal: var(--aik-fg);
+  --text-muted: var(--aik-fg-dim);
+
+  --interactive-accent: var(--aik-accent);
+  --text-accent: var(--aik-accent);
+  --color-accent: var(--aik-accent-strong);
+
+  --h1-color: var(--aik-accent);
+  --h2-color: var(--aik-accent);
+  --h3-color: var(--aik-accent);
+  --h4-color: var(--aik-accent);
+  --h5-color: var(--aik-accent);
+  --h6-color: var(--aik-accent);
+
+  --link-color: var(--aik-fg);
+  --link-external-color: var(--aik-fg);
+
+  --background-modifier-border: var(--aik-border);
+  --divider-color: var(--aik-border);
+  --tab-divider-color: var(--aik-border);
+  --tab-outline-color: var(--aik-border);
+
+  --codeblock-background: var(--aik-bg1);
+  --codeblock-color: #ecfff6;
+
+  /* mono UI */
+  --font-interface: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "JetBrains Mono", "Fira Code", monospace;
+  --font-text: var(--font-interface);
+  --font-monospace: var(--font-interface);
+}
+
+/* ---------- global layout ---------- */
+body{
+  font-family: var(--font-interface);
+  letter-spacing: 0.01em;
+  text-rendering: optimizeLegibility;
+  background: var(--aik-bg0);
+  color: var(--aik-fg);
+}
+
+/* readable width */
+.is-readable-line-width .cm-sizer,
+.is-readable-line-width .cm-content,
+.is-readable-line-width .markdown-preview-sizer{
+  max-width: var(--file-line-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ---------- CRT + scanlines (subtle) ---------- */
+body::before{
+  content:"";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  opacity: calc(var(--crt) * var(--scanline-opacity));
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.0) 0 2px, rgba(255,255,255,.08) 3px 3px);
+  mix-blend-mode: overlay;
+}
+body::after{
+  content:"";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  opacity: calc(var(--crt) * var(--flicker-opacity));
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(255,255,255,.25), transparent 60%),
+    radial-gradient(120% 60% at 50% 100%, rgba(0,255,170,.12), transparent 60%);
+  animation: aik-flicker 6.2s infinite steps(60, end);
+}
+@keyframes aik-flicker{ 50%{opacity: calc(var(--crt) * var(--flicker-opacity) * 0.6);} }
+
+/* honor reduced motion */
+@media (prefers-reduced-motion: reduce){
+  body::before, body::after{ animation: none !important; opacity: 0 !important; }
+}
+
+/* ---------- headings ---------- */
+.markdown-preview-view h1,
+.markdown-preview-view h2,
+.markdown-preview-view h3,
+h1,h2,h3,h4,h5,h6{
+  color: var(--aik-accent);
+  margin-top:.35em; margin-bottom:.45em;
+  text-shadow: 0 0 10px hsl(var(--aik-h), calc(var(--aik-s) - 10%), 55% / .25);
+}
+h1::before, h2::before, h3::before{
+  /* shell prompt flair */
+  content:"m@kerneland:~$ ";
+  color: var(--aik-accent-weak);
+  opacity:.65; font-weight: 700; font-size:.7em; margin-right:.25em;
+}
+h1::after{
+  /* tiny aside to set tone */
+  content:"  # we’re all mad in /proc";
+  font-size:.55em; opacity:.5; margin-left:.25em; color: var(--aik-fg-dim);
+}
+
+/* ---------- selection ---------- */
+::selection{ background: var(--aik-accent); color:#041; }
+
+/* ---------- links & tags ---------- */
+a.internal-link,
+.markdown-source-view.mod-cm6 .cm-hmd-internal-link .cm-underline{
+  color: var(--text-accent); text-decoration:none;
+  border-bottom:.12rem solid var(--text-accent); padding-bottom:.05rem;
+}
+.external-link,
+.markdown-source-view.mod-cm6 .cm-link .cm-underline{
+  color: var(--link-external-color); text-decoration:none;
+  border-bottom:.12rem dashed var(--aik-fg-dim); padding-bottom:.05rem;
+}
+.cm-hashtag, .tag{
+  color: var(--aik-bg0);
+  background: var(--aik-accent);
+  padding:.24rem .44rem; font-weight:700; border-radius:.3rem;
+}
+
+/* ---------- underline as keyline ---------- */
+u{ text-decoration:none; border-bottom:.12rem solid var(--aik-accent-strong); padding-bottom:.02rem; }
+
+/* ---------- quotes ---------- */
+.markdown-rendered blockquote,
+.markdown-source-view.mod-cm6.is-live-preview .HyperMD-quote{
+  font-size:.96em; background: var(--aik-bg1);
+  border-left:5px solid var(--aik-border-strong);
+  padding:.35em .7em;
+  box-shadow: inset 0 0 0 1px var(--aik-border);
+}
+.markdown-rendered blockquote::before{
+  content:"Queen of Hearts: \"Off with his head -9\"";
+  display:block; font-size:.8em; opacity:.55; margin-bottom:.25rem; color: var(--aik-fg-dim);
+}
+
+/* ---------- lists ---------- */
+.markdown-rendered ul li::marker{ color: var(--aik-accent-strong); }
+.markdown-rendered ol li::marker{ color: var(--aik-accent-weak); }
+
+/* ---------- code ---------- */
+.markdown-rendered code,
+.cm-s-obsidian span.cm-inline-code{
+  color: var(--aik-accent-strong);
+  background: #0b1612;
+  padding:.08rem .24rem; border-radius:.3rem; border:1px solid var(--aik-border);
+}
+pre code{ background: var(--codeblock-background); color: var(--codeblock-color); }
+.markdown-rendered pre{ background: var(--codeblock-background); border:1px solid var(--aik-border); border-radius: var(--aik-radius); }
+pre[class*="language-"], code[class*="language-"]{
+  font-size: var(--code-size);
+  background: var(--codeblock-background);
+  color: var(--codeblock-color);
+}
+
+/* CodeMirror 6 tinting */
+.cm-editor{ background: var(--aik-bg0) !important; }
+.cm-content{ caret-color: var(--aik-accent-strong); }
+.cm-cursor, .cm-dropCursor{ border-left: 2px solid var(--aik-accent-strong) !important; }
+.cm-activeLine{ background: color-mix(in srgb, var(--aik-accent) 7%, transparent); }
+.cm-selectionBackground, .cm-selectionLayer .cm-selectionBackground{
+  background: color-mix(in srgb, var(--aik-accent) 28%, transparent) !important;
+}
+.cm-gutters{ background: var(--aik-bg0); color: var(--aik-fg-dim); border-right: 1px solid var(--aik-border); }
+.cm-lineNumbers .cm-gutterElement{ color: var(--aik-fg-dim); }
+.cm-link,.cm-variable,.cm-variable-2,.cm-variable-3{ color:#e8fff6; }
+.cm-def,.token.function,.token.class-name{ color:var(--aik-accent); font-style:italic; }
+.cm-builtin,.cm-property,.cm-attribute,.cm-type,.token.keyword,.token.builtin,.token.property{ color:var(--aik-accent); opacity:.9; }
+.cm-string,.token.string{ color:var(--aik-accent-strong); }
+.cm-number,.token.number,.cm-operator,.token.operator{ color:var(--aik-accent-strong); }
+.cm-comment,.token.comment{ color:#58a87c; opacity:.7; }
+
+/* ---------- tables and images ---------- */
+table, .markdown-preview-view table{ margin-left:auto; margin-right:auto; border-collapse: collapse; }
+table th, table td{ border:1px solid var(--aik-border); padding:.5rem .6rem; }
+table th{ background: var(--aik-bg2); color: var(--aik-accent); }
+.markdown-preview-view img{ display:block; margin:18pt auto; width:42%; transition:transform .15s ease; border:1px solid var(--aik-border); border-radius: var(--aik-radius); }
+.markdown-preview-view img:hover{ transform: scale(1.11); }
+
+/* ---------- checkboxes ---------- */
+input[type="checkbox"]{
+  appearance: none;
+  width: 1.05rem; height: 1.05rem;
+  border: 2px solid var(--aik-border-strong);
+  border-radius: 3px; background: var(--aik-bg1);
+  vertical-align: middle; position: relative;
+}
+input[type="checkbox"]:checked{
+  background: var(--aik-accent); border-color: var(--aik-accent-strong);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--aik-accent) 30%, transparent) inset;
+}
+input[type="checkbox"]:checked::after{
+  content:"✔"; position:absolute; inset: -1px 0 0 1px;
+  font-size: .8rem; color: #031;
+}
+input[type="checkbox"]:checked:hover{ filter: brightness(1.1); }
+
+/* ---------- callouts ---------- */
+.callout{
+  border:1px solid var(--aik-border-strong);
+  background: linear-gradient(180deg, var(--aik-bg1), var(--aik-bg0));
+  border-radius: var(--aik-radius);
+}
+.callout-title{
+  font-weight: 800;
+  color: var(--aik-accent-strong);
+  text-transform: lowercase;
+}
+.callout[data-callout="warning"]{ border-color: var(--aik-warn); }
+.callout[data-callout="warning"] .callout-title{ color: var(--aik-warn); }
+.callout[data-callout="danger"], .notice-error,.is-warning,.mod-warning{
+  color:#fff; background: linear-gradient(180deg, var(--aik-danger), #b30f2b);
+  border:1px solid #b30f2b;
+}
+
+/* ---------- tabs, panes, chrome ---------- */
+.workspace, .view-content{ background: var(--aik-bg0); }
+.workspace-tab-header, .workspace-leaf.mod-active .view-header{
+  background: var(--aik-bg1); border-bottom: 1px solid var(--aik-border);
+}
+.workspace-tab-header.is-active{ box-shadow: inset 0 -2px 0 0 var(--aik-accent-strong); }
+.view-header-title{ color: var(--aik-fg); font-weight: 800; }
+
+/* ---------- status bar motto ---------- */
+.status-bar::after{
+  content:"  • sudo party: yes | tea: hot | compilers: compiling";
+  opacity:.65; font-style:italic; margin-left:.5rem;
+}
+
+/* ---------- graph view ---------- */
+.graph-view.color-fill{ color: var(--aik-accent-weak); }
+.graph-view.color-line{ color: var(--aik-border-strong); }
+.graph-view.color-text{ color: var(--aik-fg-dim); }
+
+/* ---------- search highlights ---------- */
+.search-result-file-title{ color: var(--aik-accent); }
+.markdown-preview-view .search-highlight, .cm-searchMatch{
+  background: color-mix(in srgb, var(--aik-accent) 35%, transparent);
+  outline: 1px solid var(--aik-border-strong);
+}
+
+/* ---------- a11y ---------- */
+@media (prefers-reduced-motion: reduce){
+  .markdown-preview-view img{ transition:none !important; transform:none !important; }
+  h1,h2,h3,h4,h5,h6{ text-shadow:none; }
+}
+
+/* ---------- easter egg: cheshire ASCII, subtle ---------- */
+body::marker{} /* noop guard */
+body .mod-root::before{
+  content:"(=^･ω･^=)  cheshire is watching";
+  position: fixed; right: 14px; bottom: 10px; z-index: 0; pointer-events: none;
+  font-size:.7rem; letter-spacing:.03em;
+  color: color-mix(in srgb, var(--aik-accent) 70%, transparent);
+  opacity:.35; filter: blur(.2px);
+}

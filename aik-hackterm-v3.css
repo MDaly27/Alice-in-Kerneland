@@ -1,0 +1,428 @@
+/*
+Alice in Kerneland — HackTerm v3
+Bias: readable terminal UI with neon-green highlights and subtle motion.
+- Motion low by default. CRT off by default.
+- Glows only where explicitly applied.
+- Works with Style Settings (optional).
+*/
+
+/* ---------------------------------------------
+   Style Settings controls (optional)
+   Requires "Style Settings" plugin
+------------------------------------------------
+@settings
+name: HackTerm Controls
+id: hackterm
+settings:
+  - id: hk-accent-h
+    title: Accent hue
+    type: variable-number
+    default: 135
+    min: 0
+    max: 360
+    step: 1
+  - id: hk-accent-s
+    title: Accent saturation
+    type: variable-number
+    default: 95
+    min: 0
+    max: 100
+    step: 1
+  - id: hk-accent-l
+    title: Accent lightness
+    type: variable-number
+    default: 52
+    min: 0
+    max: 100
+    step: 1
+  - id: hk-motion
+    title: Motion intensity
+    type: variable-number
+    default: 0.6
+    min: 0
+    max: 1
+    step: 0.05
+  - id: hk-glow
+    title: Glow intensity
+    type: variable-number
+    default: 0.75
+    min: 0
+    max: 1
+    step: 0.05
+  - id: hk-crt
+    title: CRT scanlines
+    type: class-toggle
+    default: false
+    class: hk-crt
+  - id: hk-grid
+    title: Subtle grid wires
+    type: class-toggle
+    default: true
+    class: hk-grid
+  - id: hk-head-prompts
+    title: Shell prompt before H1/H2/H3
+    type: class-toggle
+    default: true
+    class: hk-prompts
+*/
+
+/* ---------- tokens ---------- */
+:root{
+  --hk-h: var(--hk-accent-h, var(--accent-h, 135));
+  --hk-s: var(--hk-accent-s, var(--accent-s, 95%));
+  --hk-l: var(--hk-accent-l, var(--accent-l, 52%));
+
+  --hk-accent: hsl(var(--hk-h), var(--hk-s), var(--hk-l));
+  --hk-accent-2: hsl(var(--hk-h), calc(var(--hk-s) - 12%), calc(var(--hk-l) + 8%));
+
+  --hk-bg0:#070b09;
+  --hk-bg1:#0b120f;
+  --hk-bg2:#0f1a15;
+
+  --hk-fg:#e6fff3;
+  --hk-fg-dim:#9fd5bd;
+
+  --hk-border:#0d3f2a;
+  --hk-border-2:#135f3e;
+
+  --hk-danger:#ff355d;
+  --hk-warn:#ffb000;
+
+  --hk-radius:12px;
+  --hk-code-size:0.95rem;
+  --file-line-width:860px;
+
+  --hk-motion: var(--hk-motion, .6);
+  --hk-glow: var(--hk-glow, .75);
+
+  /* local note toggles can override these with :has() */
+  --hk-crt-op: 0;    /* 0..1 */
+  --hk-grid-op: .08; /* 0..1 */
+}
+
+/* ---------- bridge ---------- */
+body, .theme-dark{
+  --background-primary: var(--hk-bg0);
+  --background-secondary: var(--hk-bg1);
+  --background-primary-alt: var(--hk-bg1);
+  --background-secondary-alt: var(--hk-bg2);
+
+  --text-normal: var(--hk-fg);
+  --text-muted: var(--hk-fg-dim);
+
+  --interactive-accent: var(--hk-accent);
+  --text-accent: var(--hk-accent);
+  --color-accent: var(--hk-accent-2);
+
+  --divider-color: var(--hk-border);
+  --tab-divider-color: var(--hk-border);
+  --tab-outline-color: var(--hk-border);
+
+  --codeblock-background: var(--hk-bg1);
+  --codeblock-color:#effff8;
+
+  --font-interface: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "JetBrains Mono", "Fira Code", monospace;
+  --font-text: var(--font-interface);
+  --font-monospace: var(--font-interface);
+}
+
+body{
+  font-family: var(--font-interface);
+  color: var(--hk-fg);
+  background: var(--hk-bg0);
+  letter-spacing:.01em;
+  text-rendering: optimizeLegibility;
+}
+
+/* readable width */
+.is-readable-line-width .cm-sizer,
+.is-readable-line-width .cm-content,
+.is-readable-line-width .markdown-preview-sizer{
+  max-width: var(--file-line-width);
+  margin-inline:auto;
+}
+
+/* ---------- back layers ---------- */
+/* grid wires */
+body.hk-grid::before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    linear-gradient(transparent 31px, rgba(30,255,170,.12) 32px, transparent 33px),
+    linear-gradient(90deg, transparent 31px, rgba(30,255,170,.12) 32px, transparent 33px);
+  background-size: 100% 32px, 32px 100%;
+  mix-blend-mode: overlay;
+  opacity: var(--hk-grid-op);
+}
+
+/* CRT scan */
+body.hk-crt::after{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 2px, rgba(255,255,255,.07) 3px 3px);
+  mix-blend-mode: overlay;
+  opacity: calc(var(--hk-crt-op) * .18);
+  animation: hk-flicker calc(7s + 3s*var(--hk-motion)) steps(60,end) infinite;
+}
+@keyframes hk-flicker{
+  50%{ opacity: calc(var(--hk-crt-op) * .12); }
+}
+
+/* reduced motion honors user setting */
+@media (prefers-reduced-motion: reduce){
+  body.hk-crt::after{ animation:none !important; }
+}
+
+/* ---------- headings ---------- */
+h1,h2,h3,h4,h5,h6{
+  color: var(--hk-accent);
+  margin:.35em 0 .45em 0;
+  text-shadow: 0 0 calc(14px*var(--hk-glow)) rgba(0,255,170,.22);
+}
+.hk-prompts h1::before,
+.hk-prompts h2::before,
+.hk-prompts h3::before{
+  content:"m@kerneland:~$ ";
+  color: color-mix(in srgb, var(--hk-accent) 70%, transparent);
+  opacity:.7; font-weight:800; font-size:.7em; margin-right:.25em;
+}
+h1::after{
+  content:"  # /proc/cheshire online";
+  font-size:.58em; opacity:.5; margin-left:.25em; color: var(--hk-fg-dim);
+}
+
+/* animated underline on headings */
+h1, h2, h3{
+  position:relative;
+}
+h1::before, h2::after, h3::after{
+  position:absolute; left:0; bottom:-6px; content:"";
+  width:100%; height:2px; background:
+    linear-gradient(90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--hk-accent) 30%, transparent) 30%,
+      var(--hk-accent) 50%,
+      color-mix(in srgb, var(--hk-accent) 30%, transparent) 70%,
+      transparent 100%);
+  opacity:.8;
+  transform: translateX(-20%);
+  animation: hk-scan-x calc(4s - 1.5s*var(--hk-motion)) linear infinite;
+}
+@keyframes hk-scan-x{
+  to{ transform: translateX(120%); }
+}
+
+/* ---------- text selection ---------- */
+::selection{ background: var(--hk-accent); color:#031; }
+
+/* ---------- links & tags ---------- */
+a.internal-link,
+.markdown-source-view.mod-cm6 .cm-hmd-internal-link .cm-underline{
+  color: var(--text-accent); text-decoration:none;
+  border-bottom:.12rem solid var(--text-accent); padding-bottom:.05rem;
+}
+.external-link,
+.markdown-source-view.mod-cm6 .cm-link .cm-underline{
+  color: var(--text-normal); text-decoration:none;
+  border-bottom:.12rem dashed var(--hk-fg-dim); padding-bottom:.05rem;
+}
+.cm-hashtag, .tag, .hack-chip{
+  color: #031; background: var(--hk-accent);
+  padding:.26rem .5rem; font-weight:800; border-radius:.35rem;
+  box-shadow: 0 0 calc(10px*var(--hk-glow)) rgba(0,255,170,.25);
+}
+
+/* ---------- quotes ---------- */
+.markdown-rendered blockquote,
+.markdown-source-view.mod-cm6.is-live-preview .HyperMD-quote{
+  font-size:.96em; background: var(--hk-bg1);
+  border-left:4px solid var(--hk-border-2);
+  padding:.35em .7em;
+  box-shadow: inset 0 0 0 1px var(--hk-border);
+}
+.markdown-rendered blockquote::before{
+  content:"Queen: off with his head -9";
+  display:block; font-size:.8em; opacity:.55; margin-bottom:.25rem; color: var(--hk-fg-dim);
+}
+
+/* ---------- inline helpers ---------- */
+u{ text-decoration:none; border-bottom:.12rem solid var(--hk-accent-2); padding-bottom:.02rem; }
+
+.hack-glow{
+  color: var(--hk-accent-2);
+  text-shadow: 0 0 calc(14px*var(--hk-glow)) rgba(0,255,170,.45), 0 0 2px rgba(255,255,255,.15);
+  filter: drop-shadow(0 0 calc(10px*var(--hk-glow)) rgba(0,255,170,.25));
+}
+
+.hack-scan{
+  background:
+    linear-gradient(90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--hk-accent) 20%, transparent) 40%,
+      var(--hk-accent) 50%,
+      color-mix(in srgb, var(--hk-accent) 20%, transparent) 60%,
+      transparent 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: hk-scan-x calc(3.6s - 2s*var(--hk-motion)) linear infinite;
+}
+
+.hack-underline{
+  border-bottom: 2px solid var(--hk-accent-2);
+  box-shadow: 0 3px calc(12px*var(--hk-glow)) -3px rgba(0,255,170,.35);
+}
+
+/* keyboard keys */
+kbd, .hack-kbd{
+  font-family: var(--font-monospace);
+  background: #0c1a14; color: var(--hk-accent-2);
+  border:1px solid var(--hk-border-2); border-bottom-width: 2px;
+  padding:.08rem .35rem; border-radius:.25rem;
+  box-shadow: inset 0 0 0 1px rgba(0,255,170,.15);
+}
+
+/* inline badges */
+.hack-badge{
+  display:inline-flex; align-items:center; gap:.35rem;
+  padding:.18rem .5rem; border-radius:.4rem;
+  border:1px solid var(--hk-border-2);
+  background: linear-gradient(180deg, var(--hk-bg2), var(--hk-bg1));
+  color: var(--hk-fg);
+}
+.hack-badge::before{
+  content:"◆"; color: var(--hk-accent); font-weight:900;
+}
+
+/* ---------- code ---------- */
+.markdown-rendered code,
+.cm-s-obsidian span.cm-inline-code{
+  color: var(--hk-accent-2);
+  background: #0b1612;
+  padding:.08rem .24rem; border-radius:.3rem; border:1px solid var(--hk-border);
+  box-shadow: inset 0 0 0 1px rgba(0,255,170,.08);
+}
+pre code{ background: var(--codeblock-background); color: var(--codeblock-color); }
+.markdown-rendered pre{
+  background: var(--codeblock-background);
+  border:1px solid var(--hk-border); border-radius: var(--hk-radius);
+}
+
+/* language=terminal fenced code styling */
+pre[class*="language-terminal"]{
+  position:relative;
+  padding-top:2rem;
+}
+pre[class*="language-terminal"]::before{
+  content:"$"; position:absolute; left:.8rem; top:.5rem; color: var(--hk-accent-2);
+  text-shadow: 0 0 calc(10px*var(--hk-glow)) rgba(0,255,170,.3);
+}
+
+/* CM6 */
+.cm-editor{ background: var(--hk-bg0) !important; }
+.cm-content{ caret-color: var(--hk-accent-2); }
+.cm-cursor, .cm-dropCursor{ border-left: 2px solid var(--hk-accent-2) !important; }
+.cm-activeLine{ background: color-mix(in srgb, var(--hk-accent) 7%, transparent); }
+.cm-selectionBackground, .cm-selectionLayer .cm-selectionBackground{
+  background: color-mix(in srgb, var(--hk-accent) 26%, transparent) !important;
+}
+.cm-gutters{
+  background: var(--hk-bg0); color: var(--hk-fg-dim); border-right:1px solid var(--hk-border);
+}
+.cm-lineNumbers .cm-gutterElement{ color: var(--hk-fg-dim); }
+.cm-link,.cm-variable,.cm-variable-2,.cm-variable-3{ color:#e8fff6; }
+.cm-def,.token.function,.token.class-name{ color:var(--hk-accent); font-style:italic; }
+.cm-builtin,.cm-property,.cm-attribute,.cm-type,.token.keyword,.token.builtin,.token.property{ color:var(--hk-accent); opacity:.9; }
+.cm-string,.token.string{ color:var(--hk-accent-2); }
+.cm-number,.token.number,.cm-operator,.token.operator{ color:var(--hk-accent-2); }
+.cm-comment,.token.comment{ color:#58a87c; opacity:.75; }
+
+/* ---------- tables and images ---------- */
+table, .markdown-preview-view table{
+  margin-inline:auto; border-collapse: collapse;
+}
+table th, table td{ border:1px solid var(--hk-border); padding:.5rem .6rem; }
+table th{ background: var(--hk-bg2); color: var(--hk-accent); }
+
+/* images */
+.markdown-preview-view img{
+  display:block; margin:18pt auto; width:42%;
+  transition:transform calc(.12s + .12s*var(--hk-motion)) ease;
+  border:1px solid var(--hk-border); border-radius: var(--hk-radius);
+}
+.markdown-preview-view img:hover{ transform: scale(calc(1.03 + .06*var(--hk-motion))); }
+
+/* ---------- checkboxes ---------- */
+input[type="checkbox"]{
+  appearance:none; width:1.05rem; height:1.05rem;
+  border:2px solid var(--hk-border-2); border-radius:3px; background: var(--hk-bg1);
+  vertical-align: middle; position:relative;
+}
+input[type="checkbox"]:checked{
+  background: var(--hk-accent); border-color: var(--hk-accent-2);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hk-accent) 30%, transparent) inset;
+}
+input[type="checkbox"]:checked::after{
+  content:"✔"; position:absolute; inset:-1px 0 0 1px; font-size:.8rem; color:#031;
+}
+
+/* ---------- callouts ---------- */
+.callout{
+  border:1px solid var(--hk-border-2);
+  background: linear-gradient(180deg, var(--hk-bg1), var(--hk-bg0));
+  border-radius: var(--hk-radius);
+}
+.callout-title{
+  font-weight:800; color: var(--hk-accent-2); text-transform: lowercase;
+}
+.callout[data-callout="warning"]{ border-color: var(--hk-warn); }
+.callout[data-callout="warning"] .callout-title{ color: var(--hk-warn); }
+.callout[data-callout="danger"], .notice-error,.is-warning,.mod-warning{
+  color:#fff; background: linear-gradient(180deg, var(--hk-danger), #b30f2b);
+  border:1px solid #b30f2b;
+}
+
+/* ---------- chrome ---------- */
+.workspace, .view-content{ background: var(--hk-bg0); }
+.workspace-tab-header, .workspace-leaf.mod-active .view-header{
+  background: var(--hk-bg1); border-bottom:1px solid var(--hk-border);
+}
+.workspace-tab-header.is-active{ box-shadow: inset 0 -2px 0 0 var(--hk-accent-2); }
+.view-header-title{ color: var(--hk-fg); font-weight:800; }
+
+/* ---------- status bar ---------- */
+.status-bar::after{
+  content:"  • tea: hot | compilers: compiling";
+  opacity:.65; font-style:italic; margin-left:.5rem;
+}
+
+/* ---------- Buttons plugin styling ---------- */
+.button-default, .button-primary{
+  font-family: var(--font-interface);
+  border:1px solid var(--hk-border-2);
+  background: linear-gradient(180deg, var(--hk-bg2), var(--hk-bg1));
+  color: var(--hk-accent-2);
+  border-radius:.5rem; padding:.4rem .7rem;
+  box-shadow: 0 0 calc(12px*var(--hk-glow)) rgba(0,255,170,.25), inset 0 0 0 1px rgba(0,255,170,.12);
+  transition: transform .06s ease, box-shadow .12s ease;
+}
+.button-default:hover, .button-primary:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 0 calc(16px*var(--hk-glow)) rgba(0,255,170,.35), inset 0 0 0 1px rgba(0,255,170,.24);
+}
+
+/* ---------- note-local demo toggles (via :has) ----------
+Place checkboxes with ids in a note to locally drive effects.
+*/
+.markdown-preview-view:has(#hk-toggle-crt:checked){
+  --hk-crt-op: 1;
+}
+.markdown-preview-view:has(#hk-toggle-grid:checked){
+  --hk-grid-op: .12;
+}
+.markdown-preview-view:has(#hk-toggle-fast:checked){
+  --hk-motion: 1;
+}
+
+/* end */
