@@ -1,16 +1,15 @@
 import requests
 import sys
 import re
+import os
 from pathlib import Path
 
 # parse args
 if len(sys.argv) != 2:
-    print("Incorrect usage: droid.py filename")
+    print("Correct usage: droid.py <filename>")
     exit()
 
 TAG_RX = re.compile(r'#[A-Za-z0-9_]+') # tag matcher
-
-filename = sys.argv[1]
 
 def simple_req(messages, model="phi4"):
     resp = requests.post("http://localhost:11434/api/chat", json={"model": model, "messages": messages, "stream": False, "options": 
@@ -34,15 +33,7 @@ def collect_md(path='.'):
     
 
 def run_analysis(text):
-    role_msg = {"role": "system", "content": ("Your  goal is to generate a file fileld with tags of this exac format: #{single word descriptor}. output just those tags, "
-                                              "seperated by newlines. they should relate to the topics presented as input from the user, taking the main ideas and putting"
-                                              " them into single word tag representations. Output only the tags, no exaplanation or other forms of text."
-                                              "All tags need to start with a hashtag symbol then a single word."
-                                              "Number of tags should be related to the depth of topics included. Only important concepts should be tagged."
-                                              "ONLY use the ALLOWED TAGS provided by the user unless NONE apply."
-                                              "The previous instruction is VERY IMPORTANT."
-                                              "MAXIMUM NUMBER of tags is 10, but 8 or under is prefered. Caputre only whats important.")}
-
+    """Run the model with prompt engineering based on textual input. will return text answer response."""
 
     role_msg = {"role": "system", "content": ("Pick the most relevant tags from the ALLOWED TAGS category based on the input text."
                                               "Create 6 tags unless there is not enough content for that many."
@@ -54,14 +45,39 @@ def run_analysis(text):
                                               f"ALLOWED TAGS: {collect_md()}")}
     messages = [role_msg]
     messages.append({"role": "user", "content": text})
-    print(f"waiting for answer from droid.py, input: {text}")
+    print(f"waiting for answer from model.")
     answer = simple_req(messages)
-    print(answer)
+
+    return answer
 
 def main():
-    t = "Robots are machines designed to carry out tasks automatically, often using sensors, control systems, and software to interact with their environment. They can be built to handle repetitive or dangerous jobs, such as assembling products in factories, exploring hazardous areas, or assisting in medical procedures. Modern robots range from industrial arms to autonomous drones and even humanoid assistants, showing how versatile the technology has become. As robotics continues to advance, these machines are playing an increasingly important role in both everyday life and specialized industries."
-    t = "Surfing is a water sport where a person rides waves on a surfboard, balancing skill and timing to glide across the ocean’s surface. It requires awareness of the sea, from reading wave patterns to positioning correctly for the ride. Surfers often describe it as both physically challenging and deeply relaxing, combining athleticism with a sense of freedom. Beyond being a sport, surfing has grown into a lifestyle and culture centered around the ocean, adventure, and connection to nature."
-    run_analysis(t)
+    filename = sys.argv[1]
+    if filename[-4:] != ".txt":
+        print("Not a text file")
+        return -1
+
+    output_fn = filename[:-4] +"_tr.md"
+
+    if os.path.exists(output_fn):
+        print(f"Output file {output_fn} already exists, please remove it before generating this tag file.")
+        return -1
+    
+    r = False
+    with open(filename, 'r') as f:
+        data = f.read()
+        r = run_analysis(data)
+    if not r:
+        print("Error opening file")
+        return -1
+
+    if r[-1] != '\n':
+        r += '\n'
+
+    with open(output_fn, 'w') as f:
+        f.write(r)
+
+    print("Succesfully created a tags file, " + output_fn)
+
 
 if __name__ == "__main__":
     main()
