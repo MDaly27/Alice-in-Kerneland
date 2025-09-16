@@ -17,7 +17,7 @@ int main() {
         if (strcmp(input, "help") == 0) {
             printf("Instructions for usage here.\n");
         } else if (strcmp(input, "tag") == 0) {
-            printf("Enter filename for to generate tags (PDF files must be converted to text with >> ts). Press q to exit.\n");
+            printf("Enter file name for to generate tags (PDF files must be converted to text with >> ts). Press q to exit.\n");
             while (1) {
                  // remove newline at end
                 fgets(input, sizeof(input), stdin);
@@ -26,7 +26,29 @@ int main() {
                     break;
                 }
                 // check if filename exists
+                FILE* f;
+                if (!(f = fopen(input, "r"))) {
+                    printf("File name not present\n");
+                    continue;
+                }
+                fclose(f);
+
+               char command[256];
+               sprintf(command, "python3 droid.py %s", input);
+               printf("executing this command: %s\n", command);
+
+
+                FILE* p;
+                if (!(p = popen(command, "r"))) {
+                    fprintf(stderr, "Unable to run sh for this command: %s\n", command);
+                    return -1;
+                }
+                pclose(p);
+                printf("Command sucesfilly executed\n");  
             }
+
+
+                // execute python command 
         } else if (strcmp(input, "q") == 0) {
             break;
         } else {
