@@ -37,7 +37,8 @@ int main() {
         input[strcspn(input, "\n")] = 0; // remove final +-
         
         if (strcmp(input, "help") == 0) {
-            printf("Instructions for usage here.\n");
+            printf("Type tag to enter file names to create tags for.\n");
+            printf("type q to quite.\n");
         } else if (strcmp(input, "tag") == 0) {
             printf("Enter file name for to generate tags (PDF files must be converted to text with >> ts). Press q to exit.\n");
             while (1) {
