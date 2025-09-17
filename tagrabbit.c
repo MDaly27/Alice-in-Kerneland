@@ -1,8 +1,29 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
+
+
+int printFile(char *filename) {
+    char line[1024];
+    FILE *r;
+    if (!(r = fopen(filename, "r"))) {
+        fprintf(stderr, "Text art not found.\n");
+        return -1;
+    }
+    while (fgets(line, sizeof(line), r)) {
+        printf("%s\n", line);
+    }
+
+    fclose(r);
+    return 0;
+}
 
 int main() {
     printf("Welcome to TagRabbit\n");
+    
+    printFile("rabbit.txt");
+    printFile("logo.txt");
     printf("Type help for instructions\n");
 
     char input[100];
@@ -10,9 +31,10 @@ int main() {
     while (1) {
         printf(">> ");
         //printf("%s", input);
+        
         if (!fgets(input, sizeof(input), stdin)) break;
-
-        input[strcspn(input, "\n")] = 0;
+        
+        input[strcspn(input, "\n")] = 0; // remove final +-
         
         if (strcmp(input, "help") == 0) {
             printf("Instructions for usage here.\n");
@@ -25,6 +47,13 @@ int main() {
                 if (strcmp(input, "q") == 0) {
                     break;
                 }
+                // make sure filename ends in .txt
+                if (!(strcmp(input + strlen(input) - 4, ".txt") == 0)) {
+                    fprintf(stderr, "Error, not a text file.\n");
+                    continue;
+                }
+
+
                 // check if filename exists
                 FILE* f;
                 if (!(f = fopen(input, "r"))) {
@@ -34,17 +63,17 @@ int main() {
                 fclose(f);
 
                char command[256];
-               sprintf(command, "python3 droid.py %s", input);
+               sprintf(command, "python3 Droid/droid.py %s | lolcat", input);
                printf("executing this command: %s\n", command);
 
 
-                FILE* p;
-                if (!(p = popen(command, "r"))) {
-                    fprintf(stderr, "Unable to run sh for this command: %s\n", command);
-                    return -1;
+
+                int rc = system(command);
+                if (rc != 0) {
+                   fprintf(stderr, "Failed to execute command.\n");
+                } else {
+                    printf("Command successfully executed\n");  
                 }
-                pclose(p);
-                printf("Command sucesfilly executed\n");  
             }
 
 

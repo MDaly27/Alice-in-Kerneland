@@ -1,9 +1,0 @@
-#automata
-#ai
-#machine
-#textiles
-#rock
-#control
-#math
-#music
-#guitar
