@@ -1,0 +1,13 @@
+| **Beverage**         | **Flavor Notes**                                  | **Example Food Pairing**                 | **Short Explanation**                                                        |
+| -------------------- | ------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------- |
+| **Hoppy IPA**        | Citrus, pine, high bitterness                     | Spicy tacos or avocado toast             | Bitterness contrasts rich, fatty or spicy elements.                          |
+| **Malty Amber Ale**  | Caramel, toasty, medium sweetness                 | Grilled cheese or roasted vegetables     | Malty sweetness complements caramelized or toasty flavors.                   |
+| **Belgian Witbier**  | Light, citrusy, coriander-spice                   | Seafood or light salads                  | Gentle spice/citrus notes pair well with delicate, fresh flavors.            |
+| **Bourbon**          | Sweet caramel, vanilla, oak                       | Dark chocolate or pecan pie              | Rich oak and sweetness match roasted, nutty desserts.                        |
+| **Vodka**            | Clean, neutral base                               | Light appetizers (cucumber, goat cheese) | Neutral spirit won’t overpower subtle flavors; palate-cleansing effect.      |
+| **Tequila (Blanco)** | Fresh, herbal, slight pepper                      | Tacos al pastor or citrusy ceviche       | Herbal and citrus notes align with bright, zesty dishes.                     |
+| **Absinthe**         | Herbal, licorice/anise                            | Dark chocolate or licorice dessert       | Shared licorice tone intensifies the complex herbal profile.                 |
+| **Root Beer**        | Sweet, creamy sassafras or wintergreen notes      | BBQ pork or vanilla ice cream (float)    | Sweet & creamy flavors complement smoky BBQ or turn dessert-like in a float. |
+| **Lemonade**         | Tart, refreshing citrus                           | Fried chicken or buttery pastries        | Sharp acidity cuts through oily richness; also balances sweet pastry.        |
+| **Monster Energy**   | Sweet, tangy, often tropical or citrus undertones | Salty snacks (pretzels, chips)           | Sweet tang pairs well with salty, crunchy snacks; energizing contrast.       |
+Casa Migos Anejo - 

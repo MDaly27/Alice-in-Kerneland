@@ -1,0 +1,53 @@
+/*
+Cheshire Watch — Lucide eyes + quote pill
+Always on; no off toggle. ASCII removed in favor of Lucide for crisp lines.
+*/
+
+:root{
+  --cheshire-eye-size: 18px;
+  --cheshire-gap: 12px;
+  --cheshire-status-top: 4px;
+  --cheshire-status-left: 12px;
+  --cheshire-glow: rgba(0,255,170,.38);
+  /* Lucide eye SVG (encoded) */
+  --lucide-eye: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ffa8' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z'/><circle cx='12' cy='12' r='3'/></svg>");
+}
+
+.status-bar{ position: relative; }
+.status-bar::before{
+  content: "";
+  position: absolute;
+  top: var(--cheshire-status-top);
+  left: var(--cheshire-status-left);
+  width: calc(var(--cheshire-eye-size)*2 + var(--cheshire-gap));
+  height: var(--cheshire-eye-size);
+  background-image: var(--lucide-eye), var(--lucide-eye);
+  background-repeat: no-repeat;
+  background-size: var(--cheshire-eye-size) var(--cheshire-eye-size);
+  background-position: left center, right center;
+  filter: drop-shadow(0 0 calc(10px*var(--hk-glow-current, .8)) var(--cheshire-glow));
+  opacity:.9;
+  pointer-events: none;
+  animation: cheshire-blink 8s steps(60,end) infinite;
+}
+
+/* toast removed per request */
+
+@keyframes cheshire-hover{
+  0%, 86%, 100%{
+    transform: translate3d(0,0,0) scale(1);
+    opacity: calc(var(--cheshire-ascii-opacity) * .95);
+  }
+  90%{
+    transform: translate3d(.18rem, .1rem, 0) scale(1.02);
+    opacity: calc(var(--cheshire-ascii-opacity) * 1.05);
+  }
+  94%{
+    transform: translate3d(-.16rem, -.12rem, 0) scale(.98);
+    opacity: calc(var(--cheshire-ascii-opacity) * .9);
+  }
+}
+
+@keyframes cheshire-blink{ 0%,92%,100%{ opacity:.9; } 94%{ opacity:.25; } 96%{ opacity:.9; } }
+
+@media (prefers-reduced-motion: reduce){ .status-bar::before{ animation:none !important; } }
