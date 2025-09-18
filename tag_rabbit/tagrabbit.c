@@ -12,7 +12,7 @@ int printFile(char *filename) {
         return -1;
     }
     while (fgets(line, sizeof(line), r)) {
-        printf("%s\n", line);
+        printf("%s", line);
     }
 
     fclose(r);
@@ -40,7 +40,7 @@ int main() {
             printf("Type tag to enter file names to create tags for.\n");
             printf("type q to quit.\n");
         } else if (strcmp(input, "tag") == 0) {
-            printf("Enter file name for to generate tags (PDF files must be converted to text with >> ts). Press q to exit.\n");
+            printf("Enter file name to generate tags (only .txt files permitted). Press q to exit.\n");
             while (1) {
                  // remove newline at end
                 fgets(input, sizeof(input), stdin);
@@ -64,7 +64,7 @@ int main() {
                 fclose(f);
 
                char command[256];
-               sprintf(command, "python3 Droid/droid.py %s | lolcat", input);
+               sprintf(command, "python3 ../Droid/droid.py %s | lolcat", input);
                printf("executing this command: %s\n", command);
 
 
