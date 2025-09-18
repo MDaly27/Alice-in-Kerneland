@@ -1,0 +1,628 @@
+/*
+Alice in Kerneland — HackTerm v6
+Unified neon terminal skin dialed to "Hollywood hacker" with cinematic intro, binary haze, and Cheshire sentinels.
+*/
+
+/* ---------------------------------------------
+   Style Settings (optional)
+   Requires "Style Settings" plugin
+------------------------------------------------
+@settings
+name: Alice in Kerneland — HackTerm
+id: hackterm
+settings:
+  - id: hk-accent-h
+    title: Accent hue
+    type: variable-number
+    default: 135
+    min: 0
+    max: 360
+    step: 1
+  - id: hk-accent-s
+    title: Accent saturation
+    type: variable-number
+    default: 95
+    min: 0
+    max: 100
+    step: 1
+  - id: hk-accent-l
+    title: Accent lightness
+    type: variable-number
+    default: 52
+    min: 0
+    max: 100
+    step: 1
+  - id: hk-motion
+    title: Motion intensity
+    type: variable-number
+    default: 0.68
+    min: 0
+    max: 1
+    step: 0.05
+  - id: hk-glow
+    title: Glow intensity
+    type: variable-number
+    default: 0.82
+    min: 0
+    max: 1
+    step: 0.05
+  - id: hk-crt
+    title: CRT scanlines
+    type: class-toggle
+    default: false
+    class: hk-crt
+  - id: hk-hide-grid
+    title: Hide grid wires
+    type: class-toggle
+    default: false
+    class: hk-no-grid
+  - id: hk-hide-prompts
+    title: Hide shell prompts on headings
+    type: class-toggle
+    default: false
+    class: hk-prompts-off
+  - id: hk-hide-intro
+    title: Disable intro mantra
+    type: class-toggle
+    default: false
+    class: hk-intro-off
+  - id: hk-hide-binary
+    title: Disable binary haze
+    type: class-toggle
+    default: false
+    class: hk-binary-off
+*/
+
+/* ---------- tokens ---------- */
+:root{
+  /* accent hooks with Obsidian fallbacks */
+  --hk-h: var(--hk-accent-h, var(--accent-h, 135));
+  --hk-s: var(--hk-accent-s, var(--accent-s, 95%));
+  --hk-l: var(--hk-accent-l, var(--accent-l, 52%));
+
+  --hk-accent: hsl(var(--hk-h), var(--hk-s), var(--hk-l));
+  --hk-accent-soft: hsl(var(--hk-h), max(calc(var(--hk-s) - 18%), 0%), min(calc(var(--hk-l) + 6%), 100%));
+
+  /* palette */
+  --hk-bg0:#000000;
+  --hk-bg1:#000000;
+  --hk-bg2:#000000;
+  --hk-bg3:#000000;
+
+  --hk-fg:#dfffe9;
+  --hk-fg-dim:#7fce9f;
+  --hk-fg-soft:#6cbc8f;
+
+  --hk-border:#083a24;
+  --hk-border-2:#12633a;
+
+  --hk-danger:#ff355d;
+  --hk-warn:#ffb000;
+
+  --hk-radius:12px;
+  --hk-code-size:0.95rem;
+  --file-line-width:860px;
+
+  --hk-motion-base: 0.68;
+  --hk-motion-current: var(--hk-motion, var(--hk-motion-base));
+  --hk-glow-base: 0.82;
+  --hk-glow-current: var(--hk-glow, var(--hk-glow-base));
+
+  /* overlays */
+  --hk-crt-op: 0;
+  --hk-grid-op: .22;
+  --hk-eyes-op: 1;
+  --hk-intro-visible: 1;
+  --hk-eyes-visible: 1;
+  --hk-binary-opacity: .12;
+}
+
+/* ---------- bridge to Obsidian vars ---------- */
+body, .theme-dark{
+  --background-primary: var(--hk-bg0);
+  --background-secondary: var(--hk-bg1);
+  --background-primary-alt: var(--hk-bg1);
+  --background-secondary-alt: var(--hk-bg2);
+
+  --text-normal: var(--hk-fg);
+  --text-muted: var(--hk-fg-dim);
+
+  --interactive-accent: var(--hk-accent);
+  --text-accent: var(--hk-accent);
+  --color-accent: var(--hk-accent-soft);
+
+  --divider-color: var(--hk-border);
+  --tab-divider-color: var(--hk-border);
+  --tab-outline-color: var(--hk-border);
+
+  --codeblock-background: #07140b;
+  --codeblock-color:#f2fff8;
+
+  /* Hacker-esque monospace stack (falls back gracefully) */
+  --font-interface: "Iosevka", "Hack", "IBM Plex Mono", "JetBrains Mono", "Cascadia Code", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-text: var(--font-interface);
+  --font-monospace: var(--font-interface);
+}
+
+/* ---------- base ---------- */
+body{
+  font-family: var(--font-interface);
+  color: var(--hk-fg);
+  /* absolute black terminal background */
+  background: #000;
+  letter-spacing:.02em;
+  text-rendering: optimizeLegibility;
+}
+
+.is-readable-line-width .cm-sizer,
+.is-readable-line-width .cm-content,
+.is-readable-line-width .markdown-preview-sizer{
+  max-width: var(--file-line-width);
+  margin-inline:auto;
+}
+
+/* ---------- overlays ---------- */
+body::before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    linear-gradient(transparent 31px, rgba(40,255,170,.13) 32px, transparent 33px),
+    linear-gradient(90deg, transparent 31px, rgba(40,255,170,.13) 32px, transparent 33px);
+  background-size: 100% 32px, 32px 100%;
+  mix-blend-mode: screen;
+  opacity: var(--hk-grid-op);
+  transition: opacity .35s ease;
+}
+body.hk-no-grid::before{ opacity:0; }
+body.hk-grid{ --hk-grid-op: .18; }
+body.hk-crt{ --hk-crt-op: 1; }
+body.hk-intro-off{ --hk-intro-visible: 0; }
+body.hk-binary-off{ --hk-binary-opacity: 0; }
+
+body.hk-crt::after{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 2px, rgba(255,255,255,.08) 3px 3px);
+  mix-blend-mode: overlay;
+  opacity: calc(var(--hk-crt-op) * .2);
+  animation: hk-flicker calc(7s + 3s*var(--hk-motion-current)) steps(60,end) infinite;
+}
+@keyframes hk-flicker{ 0%, 100%{ opacity: calc(var(--hk-crt-op) * .16); } 45%{ opacity: calc(var(--hk-crt-op) * .08); } 48%{ opacity: calc(var(--hk-crt-op) * .24); } }
+
+.app-container{ position:relative; z-index:0; }
+.app-container::before{
+  content:"0101101001011010 00110001 00110000 00110001 00110101 00110011 ";
+  position:fixed;
+  inset:-12vh -6vw;
+  pointer-events:none;
+  z-index:0;
+  font-family: "IBM Plex Mono", "Fira Code", monospace;
+  font-weight:600;
+  font-size: clamp(0.65rem, 0.9vw, 1rem);
+  line-height:1.2;
+  letter-spacing:.4em;
+  color: rgba(28,255,165,.35);
+  opacity: var(--hk-binary-opacity);
+  mix-blend-mode: screen;
+  text-shadow: 0 0 calc(24px*var(--hk-glow-current)) rgba(8,80,32,.7);
+  transform: translate3d(0,0,0);
+  animation: hk-bitstream calc(36s - 24s*var(--hk-motion-current)) linear infinite;
+}
+@keyframes hk-bitstream{
+  0%{ transform: translate3d(0,0,0); }
+  100%{ transform: translate3d(-12vw, -24vh, 0); }
+}
+
+/* intro mantra */
+.mod-root::before{
+  content:"\"But Alice...\" said the rabbit\A\"There is no you and I. Only I.\"";
+  white-space: pre-line;
+  position:fixed;
+  inset:18vh auto auto 50%;
+  transform: translateX(-50%);
+  padding:1.4rem 2.1rem;
+  font-family: var(--font-monospace);
+  font-size:1.05rem;
+  line-height:1.6;
+  letter-spacing:.08em;
+  text-transform: uppercase;
+  color: rgba(18,230,140,.95);
+  background:
+    linear-gradient(135deg, rgba(2,20,12,.92), rgba(2,34,18,.82));
+  border:1px solid rgba(32,255,170,.35);
+  border-radius: var(--hk-radius);
+  box-shadow:
+    0 0 calc(32px*var(--hk-glow-current)) rgba(0,255,170,.22),
+    inset 0 0 0 1px rgba(0,255,170,.18);
+  filter: drop-shadow(0 0 calc(18px*var(--hk-glow-current)) rgba(0,255,170,.32));
+  z-index:10000;
+  opacity: calc(var(--hk-intro-visible));
+  pointer-events:none;
+  animation: hk-intro 10s ease-in forwards;
+  animation-delay:.25s;
+}
+@keyframes hk-intro{
+  0%{ opacity:0; transform: translate(-50%, 12px) scale(.96); filter: blur(3px); }
+  12%,55%{ opacity: calc(var(--hk-intro-visible)); transform: translate(-50%, 0) scale(1); filter:none; }
+  100%{ opacity:0; transform: translate(-50%, -8px) scale(1.02); filter: blur(4px); }
+}
+body.hk-intro-off .mod-root::before{ display:none; }
+
+/* reduced motion honors user setting */
+@media (prefers-reduced-motion: reduce){
+  body.hk-crt::after,
+  .app-container::before{
+    animation:none !important;
+    opacity:0 !important;
+  }
+  .mod-root::before{ animation:none !important; }
+  h1,h2,h3{ animation:none !important; filter:none !important; }
+}
+
+/* ---------- headings & prompts ---------- */
+h1,h2,h3,h4,h5,h6{
+  color: var(--hk-accent);
+  margin:.5em 0 .6em;
+  text-shadow:
+    0 0 calc(22px*var(--hk-glow-current)) rgba(0,255,170,.35),
+    0 0 2px rgba(255,255,255,.12);
+  letter-spacing:.06em;
+}
+h1, h2, h3{ position:relative; }
+
+h1::before, h2::before, h3::before{
+  content:"alice@root:~$ ";
+  color: color-mix(in srgb, var(--hk-accent) 75%, transparent);
+  opacity:.8;
+  font-weight:800;
+  font-size:.72em;
+  margin-right:.35em;
+}
+body.hk-prompts-off h1::before,
+body.hk-prompts-off h2::before,
+body.hk-prompts-off h3::before{ display:none; }
+
+h1::after{
+  content:"  # /proc/cheshire online";
+  font-size:.6em;
+  opacity:.55;
+  margin-left:.45em;
+  color: var(--hk-fg-dim);
+}
+
+h2::after, h3::after{
+  position:absolute; left:0; bottom:-8px; content:"";
+  width:100%; height:2px;
+  background:
+    linear-gradient(90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--hk-accent) 28%, transparent) 30%,
+      var(--hk-accent) 55%,
+      color-mix(in srgb, var(--hk-accent) 28%, transparent) 80%,
+      transparent 100%);
+  opacity:.8;
+  transform: translateX(-22%);
+  animation: hk-scan-x calc(4s - 1.5s*var(--hk-motion-current)) linear infinite;
+}
+@keyframes hk-scan-x{ to{ transform: translateX(124%); } }
+
+h1,h2,h3{
+  animation: hk-glitch calc(12s - 6s*var(--hk-motion-current)) steps(24,end) infinite;
+}
+@keyframes hk-glitch{
+  0%, 18%, 22%, 100%{
+    filter:none;
+    text-shadow: 0 0 calc(16px*var(--hk-glow-current)) rgba(0,255,170,.35);
+    transform: translate3d(0,0,0);
+  }
+  19%{
+    filter: hue-rotate(-6deg);
+    text-shadow: -2px 0 rgba(0,120,60,.6), 2px 0 rgba(120,255,210,.32);
+    transform: translate3d(.6px,-.4px,0);
+  }
+  21%{
+    filter: hue-rotate(4deg);
+    text-shadow: 2px 0 rgba(0,180,110,.6), -2px 0 rgba(120,255,210,.25);
+    transform: translate3d(-.6px,.5px,0);
+  }
+}
+
+/* ---------- selection & highlight ---------- */
+::selection{ background: var(--hk-accent); color:#021; }
+mark,
+.cm-highlight{
+  background: rgba(0,0,0,.86);
+  color: var(--hk-accent);
+  padding:.06rem .2rem;
+  border-radius:.25rem;
+  box-shadow: 0 0 calc(14px*var(--hk-glow-current)) rgba(0,255,170,.35), inset 0 0 0 1px rgba(0,255,170,.18);
+}
+
+/* ---------- links & tag pills ---------- */
+a.internal-link,
+.markdown-source-view.mod-cm6 .cm-hmd-internal-link .cm-underline{
+  color: var(--text-accent);
+  text-decoration:none;
+  border-bottom:.14rem solid var(--text-accent);
+  padding-bottom:.06rem;
+  transition: color .12s ease, border-color .12s ease;
+}
+a.internal-link:hover{ color: var(--hk-accent-soft); border-color: var(--hk-accent-soft); }
+
+.external-link,
+.markdown-source-view.mod-cm6 .cm-link .cm-underline{
+  color: var(--text-normal);
+  text-decoration:none;
+  border-bottom:.14rem dashed var(--hk-fg-dim);
+  padding-bottom:.06rem;
+}
+
+/* ---------- tasteful quotes ---------- */
+.status-bar::before{
+  content:"• ‘we’re all mad here’";
+  margin-right:.65rem;
+  opacity:.6;
+}
+
+.markdown-rendered blockquote::before{
+  content:"— curiouser and curiouser";
+  display:block;
+  font-size:.8em;
+  opacity:.5;
+  margin-bottom:.3rem;
+  color: var(--hk-fg-dim);
+}
+
+.markdown-rendered blockquote,
+.markdown-source-view.mod-cm6.is-live-preview .HyperMD-quote{
+  background: rgba(0,0,0,.6);
+  border-left:3px solid var(--hk-accent);
+  padding:.45em .8em;
+  box-shadow: 0 0 calc(14px*var(--hk-glow-current)) rgba(0,255,170,.28), inset 0 0 0 1px rgba(0,255,170,.08);
+  text-shadow: 0 0 12px rgba(0,255,170,.18);
+}
+
+.cm-hashtag, .tag, .hack-chip{
+  display:inline-flex; align-items:center; gap:.35rem;
+  color: var(--hk-accent);
+  background: #000;
+  border:1px solid rgba(0,255,170,.28);
+  padding:.24rem .56rem;
+  font-weight:800;
+  border-radius:.45rem;
+  box-shadow: 0 0 calc(12px*var(--hk-glow-current)) rgba(0,255,170,.28), inset 0 0 0 1px rgba(0,255,170,.08);
+  transition: box-shadow .12s ease, transform .06s ease;
+}
+.cm-hashtag:hover, .tag:hover, .hack-chip:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 0 calc(16px*var(--hk-glow-current)) rgba(0,255,170,.4), inset 0 0 0 1px rgba(0,255,170,.16);
+}
+
+/* ---------- file explorer (CLI vibes) ---------- */
+.nav-files-container{ padding: .25rem .25rem .6rem; }
+.nav-folder-title, .nav-file-title{
+  border-radius:.35rem; padding:.2rem .35rem;
+}
+.nav-folder-title-content::before{
+  content: "$> "; color: var(--hk-accent); opacity:.9;
+}
+.nav-file-title-content::before{
+  content: ">_ "; color: var(--hk-accent-soft); opacity:.9;
+}
+.nav-folder-title:hover, .nav-file-title:hover{
+  background: rgba(0,255,170,.06);
+  box-shadow: inset 0 0 0 1px rgba(0,255,170,.12);
+  text-shadow: 0 0 8px rgba(0,255,170,.25);
+}
+.nav-folder-title.is-active, .nav-file-title.is-active,
+.nav-file-title.is-selected, .nav-folder-title.is-selected{
+  background: rgba(0,255,170,.1);
+  box-shadow: inset 0 0 0 1px rgba(0,255,170,.18);
+}
+
+/* ---------- code ---------- */
+.markdown-rendered code,
+.cm-s-obsidian span.cm-inline-code{
+  color: var(--hk-accent-soft);
+  background: rgba(6,22,15,.92);
+  padding:.08rem .28rem;
+  border-radius:.35rem;
+  border:1px solid rgba(0,255,170,.18);
+  box-shadow: inset 0 0 0 1px rgba(0,255,170,.08);
+}
+pre code{ background: transparent; color: var(--codeblock-color); font-size: var(--hk-code-size); }
+.markdown-rendered pre{
+  background: var(--codeblock-background);
+  border:1px solid rgba(0,255,170,.12);
+  border-radius: var(--hk-radius);
+  box-shadow: inset 0 0 0 1px rgba(0,255,170,.06);
+}
+
+pre[class*="language-terminal"]{
+  position:relative;
+  padding-top:2.1rem;
+}
+pre[class*="language-terminal"]::before{
+  content:"$";
+  position:absolute;
+  left:.9rem;
+  top:.55rem;
+  color: var(--hk-accent-soft);
+  text-shadow: 0 0 calc(10px*var(--hk-glow-current)) rgba(0,255,170,.3);
+}
+
+/* ---------- CodeMirror (editor) ---------- */
+.cm-editor{ background: var(--hk-bg0) !important; }
+.cm-content{ caret-color: var(--hk-accent-soft); }
+.cm-cursor, .cm-dropCursor{ border-left: 2px solid var(--hk-accent-soft) !important; }
+.cm-selectionBackground, .cm-selectionLayer .cm-selectionBackground{
+  background: color-mix(in srgb, var(--hk-accent) 28%, transparent) !important;
+}
+.cm-activeLine{ background: color-mix(in srgb, var(--hk-accent) 10%, transparent); }
+.cm-gutters{
+  background: var(--hk-bg0);
+  color: var(--hk-fg-dim);
+  border-right:1px solid rgba(0,255,170,.08);
+}
+.cm-lineNumbers .cm-gutterElement{ color: color-mix(in srgb, var(--hk-fg-dim) 85%, var(--hk-bg3)); }
+.cm-link,.cm-variable,.cm-variable-2,.cm-variable-3{ color:#e8fff6; }
+.cm-def,.token.function,.token.class-name{ color:var(--hk-accent); font-style:italic; }
+.cm-builtin,.cm-property,.cm-attribute,.cm-type,.token.keyword,.token.builtin,.token.property{ color:var(--hk-accent); opacity:.92; }
+.cm-string,.token.string{ color:var(--hk-accent-soft); }
+.cm-number,.token.number,.cm-operator,.token.operator{ color:var(--hk-accent-soft); }
+.cm-comment,.token.comment{ color:#58a87c; opacity:.75; font-style:italic; }
+
+/* Editor heading prompts (Live Preview only) */
+.markdown-source-view.mod-cm6 .cm-line span.cm-header-1::before,
+.markdown-source-view.mod-cm6 .cm-line span.cm-header-2::before,
+.markdown-source-view.mod-cm6 .cm-line span.cm-header-3::before{
+  content: "alice@root:~$ ";
+  color: color-mix(in srgb, var(--hk-accent) 75%, transparent);
+  opacity:.8;
+  font-weight:800;
+  font-size:.72em;
+  margin-right:.35em;
+}
+
+/* ---------- tables & media ---------- */
+table, .markdown-preview-view table{
+  margin-inline:auto;
+  border-collapse:collapse;
+  background: rgba(3,15,9,.88);
+}
+table th, table td{ border:1px solid rgba(0,255,170,.16); padding:.6rem .7rem; }
+table th{ background: rgba(7,32,18,.88); color: var(--hk-accent); text-transform: uppercase; letter-spacing:.08em; }
+
+.markdown-preview-view img{
+  display:block;
+  margin:18pt auto;
+  width:44%;
+  transition: transform calc(.12s + .12s*var(--hk-motion-current)) ease, filter .18s ease;
+  border:1px solid rgba(0,255,170,.22);
+  border-radius: var(--hk-radius);
+  filter: saturate(1.1) contrast(1.1);
+}
+.markdown-preview-view img:hover{
+  transform: scale(calc(1.05 + .08*var(--hk-motion-current))) rotate(calc(-.24deg + .24deg*var(--hk-motion-current)));
+  filter: saturate(1.25) contrast(1.25);
+}
+
+/* ---------- buttons & icons ---------- */
+button, .button, .button-default, .button-primary, .mod-cta{
+  font-family: var(--font-interface);
+  background:#000;
+  color: var(--hk-accent-soft);
+  border:1px solid rgba(0,255,170,.28);
+  border-radius:.5rem;
+  padding:.42rem .75rem;
+  box-shadow: 0 0 calc(12px*var(--hk-glow-current)) rgba(0,255,170,.28), inset 0 0 0 1px rgba(0,255,170,.08);
+  transition: transform .06s ease, box-shadow .12s ease, filter .12s ease;
+  margin:.18rem;
+}
+button:hover, .button:hover, .button-default:hover, .button-primary:hover, .mod-cta:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 0 calc(16px*var(--hk-glow-current)) rgba(0,255,170,.4), inset 0 0 0 1px rgba(0,255,170,.16);
+  filter: brightness(1.06);
+}
+button:active, .button:active, .button-default:active, .button-primary:active, .mod-cta:active{
+  transform: translateY(0);
+  filter: brightness(.98);
+}
+
+.clickable-icon{
+  background:#000;
+  color: var(--hk-accent-soft);
+  border:1px solid rgba(0,255,170,.22);
+  border-radius:.45rem;
+  padding:.3rem;
+  margin:.18rem;
+  box-shadow: 0 0 calc(10px*var(--hk-glow-current)) rgba(0,255,170,.22), inset 0 0 0 1px rgba(0,255,170,.06);
+}
+.clickable-icon:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 0 calc(14px*var(--hk-glow-current)) rgba(0,255,170,.36), inset 0 0 0 1px rgba(0,255,170,.12);
+}
+
+/* Icon variables (Lucide) for hack buttons */
+:root{
+  --lucide-terminal: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ffa8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='m4 17 6-6-6-6'/><path d='M12 19h8'/></svg>");
+  --lucide-cpu: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ffa8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><rect x='4' y='4' width='16' height='16' rx='2'/><rect x='9' y='9' width='6' height='6'/><path d='M15 2v2M9 2v2M15 20v2M9 20v2M2 15h2M2 9h2M20 15h2M20 9h2'/></svg>");
+  --lucide-bug: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ffa8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M8 2v3m8-3v3M3 13h18M4 7l3 3m13-3-3 3M7 20l-3-3m13 3 3-3'/><rect x='7' y='8' width='10' height='8' rx='3'/></svg>");
+  --lucide-zap: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ffa8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M13 2L3 14h7l-1 8 10-12h-7l1-8z'/></svg>");
+  --lucide-shield: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ffa8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/></svg>");
+  --lucide-key: url("data:image/svg+xml;utf8;<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ffa8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='7.5' cy='15.5' r='5.5'/><path d='M21 2l-9.6 9.6'/><path d='M15.5 7.5l3 3'/><path d='M12.5 10.5l3 3'/></svg>");
+}
+
+.hack-btn{ display:inline-flex; align-items:center; gap:.45rem; background:#000; color: var(--hk-accent-soft); border:1px solid rgba(0,255,170,.28); border-radius:.55rem; padding:.44rem .8rem; margin:.2rem; box-shadow: 0 0 calc(12px*var(--hk-glow-current)) rgba(0,255,170,.28), inset 0 0 0 1px rgba(0,255,170,.08); transition: transform .06s ease, box-shadow .12s ease; }
+.hack-btn:hover{ transform: translateY(-1px); box-shadow: 0 0 calc(16px*var(--hk-glow-current)) rgba(0,255,170,.4), inset 0 0 0 1px rgba(0,255,170,.16); }
+.hack-btn__icon{ width:1rem; height:1rem; display:inline-block; background-size:contain; background-repeat:no-repeat; filter: drop-shadow(0 0 6px rgba(0,255,170,.25)); }
+.icon-ter{ background-image: var(--lucide-terminal); }
+.icon-cpu{ background-image: var(--lucide-cpu); }
+.icon-bug{ background-image: var(--lucide-bug); }
+.icon-zap{ background-image: var(--lucide-zap); }
+.icon-shield{ background-image: var(--lucide-shield); }
+.icon-key{ background-image: var(--lucide-key); }
+.hack-toolbar{ display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
+
+/* ---------- workspace chrome ---------- */
+.workspace, .view-content{ background: transparent; }
+.workspace-split.mod-left-split .view-content{ background:#000; }
+.workspace-split.mod-left-split .nav-files-container{ background:#000; }
+.workspace-tab-header, .workspace-leaf.mod-active .view-header{
+  background: rgba(4,16,10,.92);
+  border-bottom:1px solid rgba(0,255,170,.15);
+  box-shadow: 0 10px 24px -22px rgba(0,0,0,.85);
+}
+.workspace-tab-header.is-active{ box-shadow: inset 0 -2px 0 0 var(--hk-accent-soft); }
+.view-header-title{ color: var(--hk-fg); font-weight:800; letter-spacing:.05em; }
+
+.status-bar{
+  background: rgba(3,12,7,.92);
+  color: var(--hk-fg-dim);
+  font-size:.9em;
+  text-transform: uppercase;
+  letter-spacing:.12em;
+}
+/* status bar quote moved to cheshire snippet; keep minimal baseline */
+
+/* ---------- graph view ---------- */
+.graph-view{ background:#000 !important; }
+.graph-view.color-fill{ color: var(--hk-accent-soft); }
+.graph-view.color-line{ color: rgba(0,255,170,.36); }
+.graph-view.color-text{ color: var(--hk-fg-dim); }
+.graph-view svg circle{ filter: drop-shadow(0 0 calc(10px*var(--hk-glow-current)) rgba(0,255,170,.28)); }
+.graph-view svg line, .graph-view svg path{ stroke-opacity:.6; }
+
+/* ---------- search highlights ---------- */
+.search-result-file-title{ color: var(--hk-accent); }
+.markdown-preview-view .search-highlight, .cm-searchMatch{
+  background: color-mix(in srgb, var(--hk-accent) 38%, transparent);
+  outline: 1px solid rgba(0,255,170,.35);
+  color:#021;
+}
+
+/* ---------- a11y ---------- */
+:focus-visible{
+  outline:2px solid var(--hk-accent-soft);
+  outline-offset:3px;
+}
+
+/* reduced motion tweak */
+@media (prefers-reduced-motion: reduce){
+  .markdown-preview-view img{ transition:none !important; transform:none !important; }
+  h1,h2,h3,h4,h5,h6{ text-shadow:none; }
+}
+
+/* end */
+/* ---------- scrollbars ---------- */
+*::-webkit-scrollbar{ width: 12px; height:12px; }
+*::-webkit-scrollbar-track{ background:#000; }
+*::-webkit-scrollbar-thumb{
+  background: linear-gradient(180deg, rgba(0,255,170,.35), rgba(0,255,170,.22));
+  border:2px solid #000;
+  border-radius: 8px;
+  box-shadow: 0 0 calc(14px*var(--hk-glow-current)) rgba(0,255,170,.28);
+}
+*::-webkit-scrollbar-thumb:hover{
+  background: linear-gradient(180deg, rgba(0,255,170,.5), rgba(0,255,170,.32));
+}
