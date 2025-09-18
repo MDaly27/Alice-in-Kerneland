@@ -1,5 +1,7 @@
 # Alice in Kerneland
 
+welcome to alice in kerneland - Alice in kerneland is a fun hacker esque theme
+
 Welcome to Alice in Kerneland — a fun, hacker-esque Obsidian theme and starter kit.
 
 Quick start
